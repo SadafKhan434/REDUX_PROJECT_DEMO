@@ -1,0 +1,54 @@
+.auth {
+  margin: 5rem auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  width: 90%;
+  max-width: 30rem;
+  border-radius: 6px;
+  background-color: #f7f7f7;
+  padding: 2rem;
+  text-align: center;
+}
+
+.control {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.control label {
+  display: block;
+  color: #383838;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.control input {
+  display: block;
+  width: 100%;
+  font: inherit;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.control input:focus {
+  outline: none;
+  border-color: #3b0062;
+  background-color: #f6effa;
+}
+
+.auth button {
+  font: inherit;
+  background-color: #3b0062;
+  color: white;
+  border: 1px solid #3b0062;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.auth button:hover,
+.auth button:active {
+  background-color: #510680;
+  border-color: #510680;
+}
