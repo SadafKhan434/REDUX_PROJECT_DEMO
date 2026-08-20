@@ -21,14 +21,14 @@ const Auth = () => {
         const enteredEmail = emailInputRef.current.value;
         const enteredPassword = passwordInputRef.current.value;
 
-        const firebaseApiKey = 'AIzaSyCbIQIMC1ofR4zskI4qdRDwir8X-r_PfKw'; 
-        let url;
-
+        // Directly using your verified Firebase Web API Key to prevent errors
+        const firebaseApiKey = "AIzaSyDJOJKd_8w-M1d1VSwK5X2SBCpHkSKNiUU";
         
+        let url;
         if (isLoginMode) {
-            url = `https://googleapis.com{firebaseApiKey}`;
+            url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`;
         } else {
-            url = `https://googleapis.com{firebaseApiKey}`;
+            url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseApiKey}`;
         }
 
         setIsLoading(true);

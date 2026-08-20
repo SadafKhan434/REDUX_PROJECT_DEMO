@@ -1,30 +1,32 @@
 import React, { useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { expensesActions } from '../store/index';
+import { expensesActions, themeActions } from '../store/index';
 
 const ExpenseTracker = () => {
   const dispatch = useDispatch();
   const expenses = useSelector((state) => state.expenses.items);
-  const token = useSelector((state) => state.auth.token);
-  const userId = useSelector((state) => state.auth.userId);
+
+  // ⚡ Load Theme Reducer Values
+  const isDark = useSelector((state) => state.theme.isDark);
+  const isPremium = useSelector((state) => state.theme.isPremium);
 
   const descRef = useRef();
   const amountRef = useRef();
   const categoryRef = useRef();
-
-  
-  const dbUrl = `https://firebaseio.com{userId}.json?auth=${token}`;
+  const FIREBASE_DB_URL = 'https://expenseproject-13ec0-default-rtdb.firebaseio.com/expenses.json';
 
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
-        const response = await fetch(dbUrl);
-        if (!response.ok) throw new Error();
+        const response = await fetch(FIREBASE_DB_URL);
+        if (!response.ok) throw new Error(`Failed to load expenses: ${response.status}`);
         const data = await response.json();
         
         const loadedExpenses = [];
-        for (const key in data) {
-          loadedExpenses.push({ id: key, ...data[key] });
+        if (data) {
+          for (const key in data) {
+            loadedExpenses.push({ id: key, ...data[key] });
+          }
         }
         dispatch(expensesActions.setExpenses(loadedExpenses));
       } catch (err) {
@@ -32,13 +34,12 @@ const ExpenseTracker = () => {
       }
     };
     fetchExpenses();
-  }, [dispatch, dbUrl]);
+  }, [dispatch]);
 
   const totalAmount = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    
     const newExpense = {
       description: descRef.current.value,
       amount: amountRef.current.value,
@@ -46,14 +47,14 @@ const ExpenseTracker = () => {
     };
 
     try {
-      const response = await fetch(dbUrl, {
+      const response = await fetch(FIREBASE_DB_URL, {
         method: 'POST',
         body: JSON.stringify(newExpense),
         headers: { 'Content-Type': 'application/json' }
       });
+      if (!response.ok) throw new Error(`Failed to save expense: ${response.status}`);
       const data = await response.json();
       dispatch(expensesActions.addExpense({ id: data.name, ...newExpense }));
-      
       descRef.current.value = '';
       amountRef.current.value = '';
     } catch (err) {
@@ -61,19 +62,61 @@ const ExpenseTracker = () => {
     }
   };
 
+  // 📥 EASY CSV CONVERSION LOGIC
+  const downloadCsvFile = () => {
+    let csvData = "Description,Category,Amount\n"; 
+    
+    expenses.forEach(item => {
+      csvData += `${item.description},${item.category},${item.amount}\n`;
+    });
+
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const fileUrl = URL.createObjectURL(blob);
+    const hiddenLink = document.createElement('a');
+    
+    hiddenLink.href = fileUrl;
+    hiddenLink.download = 'my_expenses.csv';
+    document.body.appendChild(hiddenLink);
+    hiddenLink.click();
+    document.body.removeChild(hiddenLink);
+  };
+
   return (
-    <div style={{ padding: '20px', maxWidth: '35rem', margin: '2rem auto', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '6px', background: '#fff' }}>
+    <div style={{ 
+      padding: '20px', maxWidth: '35rem', margin: '2rem auto', 
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '6px', 
+      background: isDark ? '#333' : '#fff', color: isDark ? '#fff' : '#000' 
+    }}>
       <h2>Dashboard Tracker</h2>
       
-      {totalAmount > 10000 && (
-        <div style={{ background: '#fff9db', border: '1px solid #fab005', padding: '1rem', marginBottom: '1rem', borderRadius: '4px', textAlign: 'center' }}>
-          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Total expenses crossed ₹10,000 threshold!</p>
-          <button 
-            onClick={() => alert('Activating application premium toolkit...')}
-            style={{ backgroundColor: '#fab005', padding: '10px 20px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            ✨ Activate Premium
-          </button>
+      {totalAmount >= 10000 && (
+        <div style={{ background: '#fff9db', border: '1px solid #fab005', padding: '1rem', marginBottom: '1rem', borderRadius: '4px', textAlign: 'center', color: '#000' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Premium features unlocked (Crossed ₹10,000)!</p>
+          
+          {!isPremium ? (
+            <button 
+              onClick={() => dispatch(themeActions.activatePremium())}
+              style={{ backgroundColor: '#fab005', padding: '10px 20px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              Activate Premium
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => dispatch(themeActions.toggleTheme())}
+                style={{ backgroundColor: '#495057', color: '#fff', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Toggle Theme Switcher
+              </button>
+              
+              <button 
+                onClick={downloadCsvFile}
+                style={{ backgroundColor: '#12b886', color: '#fff', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Download Expenses (.CSV)
+              </button>
+            </div>
+          )}
         </div>
       )}
 

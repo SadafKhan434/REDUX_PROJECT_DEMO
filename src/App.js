@@ -7,11 +7,18 @@ import UserProfile from "./component/UserProfile";
 import ExpenseTracker from "./component/ExpenseTracker";
 
 function App() {
-  
   const isAuth = useSelector(state => state.auth.isLoggedIn);
+  
+  // 🌓 Read dark mode true/false state from your new theme reducer
+  const isDark = useSelector(state => state.theme.isDark);
 
   return (
-    <Fragment>
+    <div style={{ 
+      backgroundColor: isDark ? '#1a1a1a' : '#ffffff', 
+      color: isDark ? '#ffffff' : '#000000',
+      minHeight: '100vh',
+      transition: 'all 0.3s ease'
+    }}>
       <Header />
       
       {!isAuth && <Auth />}
@@ -24,7 +31,7 @@ function App() {
       )}
       
       <Counter /> 
-    </Fragment>
+    </div>
   );
 }
 
